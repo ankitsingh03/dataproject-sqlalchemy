@@ -1,0 +1,78 @@
+/* first graph */
+#container_1 {
+	height: 500px;
+	min-width: 310px;
+    max-width: 800px;
+    width: 100%;
+}
+
+/* second graph */
+#container_2 {
+	height: 500px;
+	min-width: 310px;
+    max-width: 800px;
+    width: 100%;
+}
+
+/* third graph */
+#container_3 {
+	height: 500px;
+	min-width: 310px;
+    max-width: 800px;
+    width: 100%;
+}
+
+/* fourth graph */
+.highcharts-figure, .highcharts-data-table table {
+    width: 800px;
+    max-width: 100%;
+    margin: 1em auto;
+}
+
+#container_4 {
+    height: 500px;
+}
+
+.highcharts-data-table table {
+	font-family: Verdana, sans-serif;
+	border-collapse: collapse;
+	border: 1px solid #EBEBEB;
+	margin: 10px auto;
+	text-align: center;
+	width: 100%;
+	max-width: 500px;
+}
+.highcharts-data-table caption {
+    padding: 1em 0;
+    font-size: 1.2em;
+    color: #555;
+}
+.highcharts-data-table th {
+	font-weight: 600;
+    padding: 0.5em;
+}
+.highcharts-data-table td, .highcharts-data-table th, .highcharts-data-table caption {
+    padding: 0.5em;
+}
+.highcharts-data-table thead tr, .highcharts-data-table tr:nth-child(even) {
+    background: #f8f8f8;
+}
+.highcharts-data-table tr:hover {
+    background: #f1f7ff;
+}
+
+/* flex .box */
+.container {
+    display: flex;
+    position: relative;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+.box {
+    position: relative;
+    color: white;
+    margin: 3em 6em;
+    padding: 1em;
+    border-radius: 1em;
+}
