@@ -1,10 +1,10 @@
 from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy import Column, Integer, String, Date, func
+from sqlalchemy import Column, Integer, String, Date, func, union_all
 from sqlalchemy.orm import sessionmaker
+from collections import defaultdict
 import csv
 import json
-from collections import defaultdict
 
 
 engine = create_engine('postgresql://ankit:ankit@localhost:5432/ankitdb')
@@ -12,8 +12,10 @@ Base = declarative_base()
 Session = sessionmaker(bind=engine)
 
 
-def create_table():
-
+def schema():
+    """
+    This is schema of table. Contain the datatypes of table.
+    """
     class Umpire(Base):
         __tablename__ = ('umpire')
         id = Column(Integer, primary_key=True)
@@ -74,8 +76,10 @@ def create_table():
 
 
 def push_data(Umpire, Deliveries, Matches):
+    """
+    This function take the data from csv and push into postgres database.
+    """
     session = Session()
-    # umpire_data
     with open('assets/umpire_data.csv', 'r') as csv_file:
         csv_reader = csv.reader(csv_file)
         csv_reader.__next__()
@@ -85,8 +89,7 @@ def push_data(Umpire, Deliveries, Matches):
                 first_officiated=line[2], last_officiated=line[3],
                 no_of_matches=line[4]))
 
-    # top batsman data
-    # open the csv file and clean data
+    # Top batsman data and top runs scored by teams
     with open('assets/deliveries.csv', 'r') as csv_file:
         csv_reader = csv.reader(csv_file)
         csv_reader.__next__()
@@ -103,10 +106,10 @@ def push_data(Umpire, Deliveries, Matches):
                 total_runs=line[17], player_dismissed=line[18],
                 dismissal_kind=line[19], fielder=line[20]))
 
+    # Number of matches played by teams by season
     with open('assets/matches.csv', 'r') as csv_file:
         csv_reader = csv.reader(csv_file)
         csv_reader.__next__()
-        # creating dict {season: list of teams name}
         for line in csv_reader:
             session.add(Matches(
                 season=line[1], city=line[2],
@@ -118,41 +121,53 @@ def push_data(Umpire, Deliveries, Matches):
                 player_of_match=line[13], venue=line[14],
                 umpire1=line[15], umpire2=line[16],
                 umpire3=line[17]))
+
     session.commit()
     session.close()
 
 
-def database_json_1(Umpire):
+def database_json_umpire(Umpire):
+    """
+    This function take required data from umpire table and push \
+    into umpire's json file. Number of umpires by in IPL by country.
+    """
     session = Session()
-    # umpire
     umpire_data = session.query(
         Umpire.nationality, func.count(Umpire.nationality))\
         .group_by(Umpire.nationality)\
         .order_by(func.count(Umpire.nationality).desc())\
         .filter(Umpire.nationality != 'India').all()
 
+    # Pushing all the required data to json file
     with open(
         "assets/foreign_umpire_analysis.json", "w"
               ) as outfile:
         json.dump(dict(umpire_data), outfile)
 
 
-def database_json_2(Deliveries):
-    # top 10 batsman by total run over the year
+def database_json_top_batsman(Deliveries):
+    '''
+    This function take required data from deliveries table and push \
+    into top batsman's json file. Top 10 batsman by total run over the year
+    '''
     session = Session()
     top_batsman = session.query(
         Deliveries.batsman,
         func.sum(Deliveries.batsman_runs)).group_by(Deliveries.batsman)\
         .order_by(func.sum(Deliveries.batsman_runs).desc()).limit(10).all()
 
+    # Pushing all the required data to json file
     with open(
         "assets/top_batsman_for_royal_challengers_bangalore.json", "w"
               ) as outfile:
         json.dump(dict(top_batsman), outfile)
 
 
-def database_json_3(Deliveries):
-    # top 10 team by run over the history
+def database_json_top_runs(Deliveries):
+    '''
+    This function take required data from deliveries table and push \
+    into top runs's json file. Top 10 team by run over the history
+    '''
     session = Session()
     top_teams = session.query(
         Deliveries.batting_team, func.sum(Deliveries.total_runs))\
@@ -164,24 +179,44 @@ def database_json_3(Deliveries):
         json.dump(dict(top_teams), outfile)
 
 
-def database_json_4(Matches):
+def database_json_stacked(Matches):
+    '''
+    This function take required data from matches table and push into number \
+    of matches by teams by season's json file.
+    '''
     session = Session()
-    # y = [i.season for i in session.query(Matches)
-    # .distinct(Matches.season).all()]
-    # print(y)
-    result = session.query(
+
+    # list of years
+    year = [i.season for i in session.query(Matches)
+            .distinct(Matches.season).all()]
+
+    # list of teams name
+    q1 = session.query(Matches.team1).distinct()\
+        .union_all(session.query(Matches.team2).distinct())
+    teams = [i[0] for i in q1]
+
+    result1 = session.query(
         Matches.season, Matches.team1, func.count(Matches.team1))\
         .group_by(Matches.season, Matches.team1)\
-        .order_by(Matches.season).all()
-    print(result)
-    print()
-    result = session.query(
+        .order_by(Matches.season, Matches.team1).all()
+
+    result2 = session.query(
         Matches.season, Matches.team2, func.count(Matches.team2))\
         .group_by(Matches.season, Matches.team2)\
-        .order_by(Matches.season).all()
-    print(result)
-    print()
+        .order_by(Matches.season, Matches.team2).all()
 
+    total1 = []
+    for index, value in enumerate(result1):
+        total1.append((value[0], value[1], value[2] + result2[index][2]))
+
+    total = dict.fromkeys(year, {})
+    for i in year:
+        for j in total1:
+            total[i][j[1]] = j[2]
+
+    print(total)
+    print()
+    # -------------------------------------------------------------------
     result = session.query(Matches).all()
     season = defaultdict(list)
     teams = set()
@@ -196,7 +231,6 @@ def database_json_4(Matches):
             total[p] = {i: q.count(i) for i in q}
     print(total)
     year = sorted(total.keys())
-
     # formation of dict {team_name: [data over the year]}
     team_data = defaultdict(list)
     for i in teams:
@@ -204,10 +238,11 @@ def database_json_4(Matches):
             team_data[i].append(total[j].get(i, 0))
 
     # print(team_data)
-    # data = {'years': year,
-    #         'team_data':
-    #         [{'name': i, 'data': j} for i, j in team_data.items()]
-    #         }
+    data = {'years': year,
+            'team_data':
+            [{'name': i, 'data': j} for i, j in team_data.items()]
+            }
+    print(data)
     # with open(
     #     "assets/stacked_chart_of_matches_played_by_team_by_season.json", "w"
     #           ) as outfile:
@@ -215,9 +250,9 @@ def database_json_4(Matches):
 
 
 if __name__ == "__main__":
-    umpire, deliveries, matches = create_table()
+    umpire, deliveries, matches = schema()
     push_data(umpire, deliveries, matches)
-    database_json_1(umpire)
-    database_json_2(deliveries)
-    database_json_3(deliveries)
-    database_json_4(matches)
+    database_json_umpire(umpire)
+    database_json_top_batsman(deliveries)
+    database_json_top_runs(deliveries)
+    database_json_stacked(matches)
