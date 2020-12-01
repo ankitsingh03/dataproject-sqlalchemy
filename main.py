@@ -80,6 +80,8 @@ def push_data(Umpire, Deliveries, Matches):
     This function take the data from csv and push into postgres database.
     """
     session = Session()
+
+    # country and number of umpire over the history of IPL.
     with open('assets/umpire_data.csv', 'r') as csv_file:
         csv_reader = csv.reader(csv_file)
         csv_reader.__next__()
@@ -190,7 +192,7 @@ def database_json_stacked(Matches):
     year = [i.season for i in session.query(Matches)
             .distinct(Matches.season).all()]
 
-    # list of teams name
+    # list of teams name in column team1 and team2
     q1 = session.query(Matches.team1).distinct()\
         .union(session.query(Matches.team2).distinct())
     teams = [i[0] for i in q1]
@@ -205,19 +207,25 @@ def database_json_stacked(Matches):
         .group_by(Matches.season, Matches.team2)\
         .order_by(Matches.season, Matches.team2).all()
 
+    # creating dict {season: {team: number of matches played in one season}}
     total = {i: {} for i in year}
     for index, value in enumerate(team_1):
         total[value[0]][value[1]] = value[2] + team_2[index][2]
 
+    # filling the blank with zero whcih will provide sequence
+    # create dict according to {team: [number of matches per season]}
     team_data = defaultdict(list)
     for i in teams:
         for j in year:
             team_data[i].append(total[j].get(i, 0))
 
+    # arrange the data according to high chart requirement
     data = {'years': year,
             'team_data':
             [{'name': i, 'data': j} for i, j in team_data.items()]
             }
+
+    # push the data in json file for plot
     with open(
         "assets/stacked_chart_of_matches_played_by_team_by_season.json", "w"
               ) as outfile:
