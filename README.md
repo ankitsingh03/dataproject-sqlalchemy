@@ -1,15 +1,15 @@
 # Dataproject-SQLalchemy
 
 ## Aim
-- create SQL script for ceate and delete the role and database. 
-- Create schema according to csv file.
+- create SQL script for create and delete the role and database. 
+- Create schema according to csv files.
 - Push all the csv data in created database with the help of SQLalchemy.
 - Fatch the required data from database with the help of SQLalchemy.
 - Present the data in HTML page, use the HighCharts JavaScript Lib for plotting.
 
 ## Project Requirements
 - Python version should be more then 3.7+
-- In project **requirements.txt** file is present. It has all the list of packages which is needed to run the project. Run this command to install all the required package `pip install -r requirement.txt`
+- Run this command to install all the required package `pip install -r requirement.txt`
 - Basic browser
 - Postgresql
 
