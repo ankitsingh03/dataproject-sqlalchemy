@@ -23,8 +23,9 @@
 2. To install **requirements.txt** run this `pip install -r requirements.txt`.
 3. Run **create.sql** file in postgre. Use `\i create.sql;`.
 4. Run python `main.py` file.
-5. Open `index.html` file in your browser.
-6. For clear up, role and database. Run this `\i drop.sql;` in postgres. 
+5. Open `index.html` file in your browser to see the output.
+6. You can also use python server to see the result. Run this command in project directory `python3 -m http.server 8000`.
+7. For clear up, role and database. Run this `\i drop.sql;` in postgres. 
 
 #### Graph 1: Foreign umpire analysis
 - Obtain a source for country of origin of umpires. Plot a chart between number of umpires by in IPL by country. Indian umpires should be ignored as this would dominate the graph.
