@@ -193,9 +193,7 @@ def database_json_stacked(Matches):
             .distinct(Matches.season).all()]
 
     # list of teams name in column team1 and team2
-    q1 = session.query(Matches.team1).distinct()\
-        .union(session.query(Matches.team2).distinct())
-    teams = [i[0] for i in q1]
+    teams = [i[0] for i in session.query(Matches.team1).distinct()]
 
     team_1 = session.query(
         Matches.season, Matches.team1, func.count(Matches.team1))\
@@ -234,7 +232,7 @@ def database_json_stacked(Matches):
 
 if __name__ == "__main__":
     umpire, deliveries, matches = schema()
-    push_data(umpire, deliveries, matches)
+    # push_data(umpire, deliveries, matches)
     database_json_umpire(umpire)
     database_json_top_batsman(deliveries)
     database_json_top_runs(deliveries)
