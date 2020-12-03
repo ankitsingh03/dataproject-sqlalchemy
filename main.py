@@ -233,7 +233,7 @@ def database_json_stacked(Matches):
 
 if __name__ == "__main__":
     umpire, deliveries, matches = schema()
-    # push_data(umpire, deliveries, matches)
+    push_data(umpire, deliveries, matches)
     database_json_umpire(umpire)
     database_json_top_batsman(deliveries)
     database_json_top_runs(deliveries)
