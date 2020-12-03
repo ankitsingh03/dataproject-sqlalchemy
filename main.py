@@ -192,9 +192,6 @@ def database_json_stacked(Matches):
     year = [i.season for i in session.query(Matches)
             .distinct(Matches.season).all()]
 
-    # list of teams name in column team1 and team2
-    teams = [i[0] for i in session.query(Matches.team1).distinct()]
-
     team_1 = session.query(
         Matches.season, Matches.team1, func.count(Matches.team1))\
         .group_by(Matches.season, Matches.team1)\
@@ -207,8 +204,12 @@ def database_json_stacked(Matches):
 
     # creating dict {season: {team: number of matches played in one season}}
     total = {i: {} for i in year}
+    teams = set()
     for index, value in enumerate(team_1):
         total[value[0]][value[1]] = value[2] + team_2[index][2]
+        teams.add(value[1])
+
+    teams = sorted(list(teams))
 
     # filling the blank with zero whcih will provide sequence
     # create dict according to {team: [number of matches per season]}
@@ -232,7 +233,7 @@ def database_json_stacked(Matches):
 
 if __name__ == "__main__":
     umpire, deliveries, matches = schema()
-    push_data(umpire, deliveries, matches)
+    # push_data(umpire, deliveries, matches)
     database_json_umpire(umpire)
     database_json_top_batsman(deliveries)
     database_json_top_runs(deliveries)
